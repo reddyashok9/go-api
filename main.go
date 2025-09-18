@@ -59,6 +59,66 @@ func main() {
 		return c.Status(fiber.StatusCreated).JSON(newUser)
 	})
 
+	app.Delete("/users/:id", func(c *fiber.Ctx) error {
+		id, err := strconv.Atoi(c.Params("id"))
+		if err != nil {
+			return c.Status(fiber.StatusBadRequest).JSON(Response{Message: "Invalid ID"})
+		}
+
+		for i, user := range users {
+			if user.ID == id {
+				users = append(users[:i], users[i+1:]...)
+				return c.JSON(Response{Message: "User deleted"})
+			}
+		}
+
+		return c.Status(fiber.StatusNotFound).JSON(Response{Message: "User not found"})
+	})
+
+	app.Patch("/users/:id", func(c *fiber.Ctx) error {
+		id, err := strconv.Atoi(c.Params("id"))
+		if err != nil {
+			return c.Status(fiber.StatusBadRequest).JSON(Response{Message: "Invalid ID"})
+		}
+
+		var updatedData User
+		if err := c.BodyParser(&updatedData); err != nil {
+			return c.Status(fiber.StatusBadRequest).JSON(Response{Message: "Invalid request body"})
+		}
+
+		for i, user := range users {
+			if user.ID == id {
+				if updatedData.Name != "" {
+					users[i].Name = updatedData.Name
+				}
+				return c.JSON(users[i])
+			}
+		}
+
+		return c.Status(fiber.StatusNotFound).JSON(Response{Message: "User not found"})
+	})
+
+	app.Put("/users/:id", func(c *fiber.Ctx) error {
+		id, err := strconv.Atoi(c.Params("id"))
+		if err != nil {
+			return c.Status(fiber.StatusBadRequest).JSON(Response{Message: "Invalid ID"})
+		}
+
+		var updatedUser User
+		if err := c.BodyParser(&updatedUser); err != nil {
+			return c.Status(fiber.StatusBadRequest).JSON(Response{Message: "Invalid request body"})
+		}
+
+		for i, user := range users {
+			if user.ID == id {
+				users[i].Name = updatedUser.Name
+				return c.JSON(users[i])
+			}
+		}
+
+		return c.Status(fiber.StatusNotFound).JSON(Response{Message: "User not found"})
+	})
+
 	log.Fatal(app.Listen(":3000")) //app.Listen(":3000");
 
 }
